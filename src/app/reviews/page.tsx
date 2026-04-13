@@ -11,23 +11,25 @@ export const metadata: Metadata = {
 export const revalidate = 300;
 
 export default async function ReviewsPage() {
-  const reviews = await sql`
-    SELECT r.*, t.name as tool_name, t.slug as tool_slug, t.logo_color as tool_color
-    FROM reviews r
-    JOIN tools t ON t.id = r.tool_id
-    WHERE r.status = 'published'
-    ORDER BY r.created_at DESC
-    LIMIT 50
-  `;
-
-  // Tools with most reviews
-  const topReviewed = await sql`
-    SELECT t.slug, t.name, t.logo_color, t.review_count, t.avg_rating
-    FROM tools t
-    WHERE t.status = 'published' AND t.review_count > 0
-    ORDER BY t.review_count DESC
-    LIMIT 10
-  `;
+  let reviews: any[] = [];
+  let topReviewed: any[] = [];
+  try {
+    reviews = await sql`
+      SELECT r.*, t.name as tool_name, t.slug as tool_slug, t.logo_color as tool_color
+      FROM reviews r
+      JOIN tools t ON t.id = r.tool_id
+      WHERE r.status = 'published'
+      ORDER BY r.created_at DESC
+      LIMIT 50
+    `;
+    topReviewed = await sql`
+      SELECT t.slug, t.name, t.logo_color, t.review_count, t.avg_rating
+      FROM tools t
+      WHERE t.status = 'published' AND t.review_count > 0
+      ORDER BY t.review_count DESC
+      LIMIT 10
+    `;
+  } catch {}
 
   return (
     <div className="max-w-[900px] mx-auto px-6 py-10">

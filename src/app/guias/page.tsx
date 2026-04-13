@@ -11,15 +11,18 @@ export const metadata: Metadata = {
 export const revalidate = 300;
 
 export default async function GuidesPage() {
-  const guides = await sql`
-    SELECT g.*,
-      c.name_es as category_name,
-      (SELECT COUNT(*) FROM guide_tools gt WHERE gt.guide_id = g.id) as tool_count
-    FROM guides g
-    LEFT JOIN categories c ON c.id = g.category_id
-    WHERE g.status = 'published'
-    ORDER BY g.created_at DESC
-  `;
+  let guides: any[] = [];
+  try {
+    guides = await sql`
+      SELECT g.*,
+        c.name_es as category_name,
+        (SELECT COUNT(*) FROM guide_tools gt WHERE gt.guide_id = g.id) as tool_count
+      FROM guides g
+      LEFT JOIN categories c ON c.id = g.category_id
+      WHERE g.status = 'published'
+      ORDER BY g.created_at DESC
+    `;
+  } catch {}
 
   // Static suggestions for guides that haven't been created yet
   const SUGGESTED_PROFESSIONS = [

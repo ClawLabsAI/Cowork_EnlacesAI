@@ -11,28 +11,31 @@ export const metadata: Metadata = {
 export const revalidate = 300;
 
 export default async function StacksPage() {
-  const stacks = await sql`
-    SELECT s.*,
-      COALESCE(
-        json_agg(
-          json_build_object(
-            'id', si.id,
-            'role', si.role,
-            'sort_order', si.sort_order,
-            'tool_name', t.name,
-            'tool_slug', t.slug,
-            'tool_color', t.logo_color
-          ) ORDER BY si.sort_order
-        ) FILTER (WHERE si.id IS NOT NULL),
-        '[]'
-      ) as items
-    FROM stacks s
-    LEFT JOIN stack_items si ON si.stack_id = s.id
-    LEFT JOIN tools t ON t.id = si.tool_id
-    WHERE s.status = 'published'
-    GROUP BY s.id
-    ORDER BY s.votes DESC, s.created_at DESC
-  `;
+  let stacks: any[] = [];
+  try {
+    stacks = await sql`
+      SELECT s.*,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', si.id,
+              'role', si.role,
+              'sort_order', si.sort_order,
+              'tool_name', t.name,
+              'tool_slug', t.slug,
+              'tool_color', t.logo_color
+            ) ORDER BY si.sort_order
+          ) FILTER (WHERE si.id IS NOT NULL),
+          '[]'
+        ) as items
+      FROM stacks s
+      LEFT JOIN stack_items si ON si.stack_id = s.id
+      LEFT JOIN tools t ON t.id = si.tool_id
+      WHERE s.status = 'published'
+      GROUP BY s.id
+      ORDER BY s.votes DESC, s.created_at DESC
+    `;
+  } catch {}
 
   return (
     <div className="max-w-[900px] mx-auto px-6 py-10">

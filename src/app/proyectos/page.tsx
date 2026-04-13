@@ -11,21 +11,24 @@ export const metadata: Metadata = {
 export const revalidate = 300;
 
 export default async function ProjectsPage() {
-  const projects = await sql`
-    SELECT p.*,
-      COALESCE(
-        json_agg(
-          json_build_object('tool_name', t.name, 'tool_slug', t.slug, 'tool_color', t.logo_color, 'usage_note', pt.usage_note)
-        ) FILTER (WHERE pt.id IS NOT NULL),
-        '[]'
-      ) as tools
-    FROM projects p
-    LEFT JOIN project_tools pt ON pt.project_id = p.id
-    LEFT JOIN tools t ON t.id = pt.tool_id
-    WHERE p.status = 'published'
-    GROUP BY p.id
-    ORDER BY p.votes DESC, p.created_at DESC
-  `;
+  let projects: any[] = [];
+  try {
+    projects = await sql`
+      SELECT p.*,
+        COALESCE(
+          json_agg(
+            json_build_object('tool_name', t.name, 'tool_slug', t.slug, 'tool_color', t.logo_color, 'usage_note', pt.usage_note)
+          ) FILTER (WHERE pt.id IS NOT NULL),
+          '[]'
+        ) as tools
+      FROM projects p
+      LEFT JOIN project_tools pt ON pt.project_id = p.id
+      LEFT JOIN tools t ON t.id = pt.tool_id
+      WHERE p.status = 'published'
+      GROUP BY p.id
+      ORDER BY p.votes DESC, p.created_at DESC
+    `;
+  } catch {}
 
   return (
     <div className="max-w-[900px] mx-auto px-6 py-10">
