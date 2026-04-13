@@ -8,7 +8,7 @@ export interface Category {
   name_es: string;
   name_en?: string;
   icon: string;
-  description?: string;
+  description_es?: string;
   tool_count: number;
   sort_order: number;
 }
@@ -71,7 +71,7 @@ export interface Comparison {
   id: string;
   slug: string;
   title_es: string;
-  description?: string;
+  description_es?: string;
   category_id?: string;
   criteria?: Record<string, string>;
   items?: ComparisonItem[];
