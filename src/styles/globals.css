@@ -35,6 +35,9 @@
   --c-rose-bg: rgba(251, 113, 133, 0.1);
   --c-amber: #fbbf24;
   --c-amber-bg: rgba(251, 191, 36, 0.1);
+
+  /* Nav */
+  --c-nav-bg: rgba(10, 10, 10, 0.8);
 }
 
 /* ── Light theme ── */
@@ -65,6 +68,8 @@
   --c-rose-bg: rgba(225, 29, 72, 0.08);
   --c-amber: #d97706;
   --c-amber-bg: rgba(217, 119, 6, 0.08);
+
+  --c-nav-bg: rgba(255, 255, 255, 0.8);
 }
 
 /* ── Base reset ── */

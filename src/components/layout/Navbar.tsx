@@ -9,13 +9,16 @@ export function Navbar() {
 
   useEffect(() => {
     const saved = localStorage.getItem("theme");
-    if (saved === "light") setDark(false);
+    if (saved === "light") {
+      setDark(false);
+      document.documentElement.classList.add("light");
+    }
   }, []);
 
   function toggle() {
     const next = !dark;
     setDark(next);
-    document.documentElement.classList.toggle("dark", next);
+    document.documentElement.classList.toggle("light", !next);
     localStorage.setItem("theme", next ? "dark" : "light");
   }
 
