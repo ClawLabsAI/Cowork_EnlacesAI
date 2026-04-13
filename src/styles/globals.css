@@ -1,0 +1,198 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design tokens: Dark (default) ── */
+:root {
+  /* Surfaces */
+  --c-bg: #0a0a0a;
+  --c-surface: #141414;
+  --c-surface2: #1a1a1a;
+  --c-surface3: #222222;
+
+  /* Borders */
+  --c-border: #1e1e1e;
+  --c-border2: #2a2a2a;
+
+  /* Text */
+  --c-heading: #fafafa;
+  --c-text: #b0b0b0;
+  --c-dim: #888888;
+  --c-faint: #555555;
+
+  /* Accent (Indigo) */
+  --c-accent: #635bff;
+  --c-accent-text: #818cf8;
+  --c-accent-subtle: rgba(99, 91, 255, 0.08);
+  --c-accent-border: rgba(99, 91, 255, 0.25);
+
+  /* Semantic */
+  --c-green: #34d399;
+  --c-green-bg: rgba(52, 211, 153, 0.1);
+  --c-blue: #60a5fa;
+  --c-blue-bg: rgba(96, 165, 250, 0.1);
+  --c-rose: #fb7185;
+  --c-rose-bg: rgba(251, 113, 133, 0.1);
+  --c-amber: #fbbf24;
+  --c-amber-bg: rgba(251, 191, 36, 0.1);
+}
+
+/* ── Light theme ── */
+.light {
+  --c-bg: #ffffff;
+  --c-surface: #f8f8f8;
+  --c-surface2: #f0f0f0;
+  --c-surface3: #e8e8e8;
+
+  --c-border: #e5e5e5;
+  --c-border2: #d4d4d4;
+
+  --c-heading: #0a0a0a;
+  --c-text: #525252;
+  --c-dim: #737373;
+  --c-faint: #a3a3a3;
+
+  --c-accent: #635bff;
+  --c-accent-text: #4f46e5;
+  --c-accent-subtle: rgba(99, 91, 255, 0.06);
+  --c-accent-border: rgba(99, 91, 255, 0.2);
+
+  --c-green: #059669;
+  --c-green-bg: rgba(5, 150, 105, 0.08);
+  --c-blue: #2563eb;
+  --c-blue-bg: rgba(37, 99, 235, 0.08);
+  --c-rose: #e11d48;
+  --c-rose-bg: rgba(225, 29, 72, 0.08);
+  --c-amber: #d97706;
+  --c-amber-bg: rgba(217, 119, 6, 0.08);
+}
+
+/* ── Base reset ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+  background-color: var(--c-bg);
+  color: var(--c-text);
+  line-height: 1.6;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ── Scrollbar (dark) ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--c-border2);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--c-dim);
+}
+
+/* ── Selection ── */
+::selection {
+  background-color: var(--c-accent);
+  color: white;
+}
+
+/* ── Focus ring ── */
+:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Links ── */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ── Accent utility (for bg-accent) ── */
+.bg-accent {
+  background-color: var(--c-accent);
+}
+.text-accent {
+  color: var(--c-accent);
+}
+.border-accent {
+  border-color: var(--c-accent);
+}
+
+/* ── Prose for tool descriptions ── */
+.prose-custom p {
+  margin-bottom: 1em;
+}
+.prose-custom p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Smooth page transitions ── */
+main {
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Card hover lift ── */
+.card-hover {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ── Line clamp utilities ── */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Input styling ── */
+input[type="email"],
+input[type="text"],
+input[type="search"] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input::placeholder {
+  color: var(--c-faint);
+}
+
+/* ── Badge pulse for "live" indicator ── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.5; }
+}
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
