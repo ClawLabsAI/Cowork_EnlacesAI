@@ -13,7 +13,11 @@ const POPULAR = [
   "resumir textos",
 ];
 
-export function SearchBar() {
+interface Props {
+  compact?: boolean;
+}
+
+export function SearchBar({ compact }: Props) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -22,7 +26,6 @@ export function SearchBar() {
   const debounceRef = useRef<NodeJS.Timeout>();
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Cerrar dropdown al hacer click fuera
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
@@ -39,7 +42,6 @@ export function SearchBar() {
       setIsOpen(false);
       return;
     }
-
     setLoading(true);
     try {
       const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
@@ -68,45 +70,51 @@ export function SearchBar() {
   }
 
   return (
-    <div ref={wrapperRef} className="relative w-full max-w-[520px] mx-auto">
+    <div ref={wrapperRef} className={`relative w-full ${compact ? "" : "max-w-[520px] mx-auto"}`}>
       <form onSubmit={handleSubmit}>
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[var(--c-faint)]" />
+          <Search className={`absolute left-3 top-1/2 -translate-y-1/2 text-[var(--c-faint)] ${compact ? "w-4 h-4" : "w-[18px] h-[18px] left-4"}`} />
           <input
             type="text"
             value={query}
             onChange={(e) => handleChange(e.target.value)}
-            placeholder="Buscar herramienta o caso de uso..."
-            className="w-full h-[50px] pl-11 pr-10 text-[15px] bg-[var(--c-surface)] border border-[var(--c-border2)] rounded-xl text-[var(--c-heading)] outline-none transition-all placeholder:text-[var(--c-faint)] focus:border-accent focus:ring-[3px] focus:ring-accent-subtle"
+            placeholder={compact ? "Buscar..." : "Buscar herramienta o caso de uso..."}
+            className={`w-full bg-[var(--c-surface)] border border-[var(--c-border2)] text-[var(--c-heading)] outline-none transition-all placeholder:text-[var(--c-faint)] focus:border-[var(--c-accent)] ${
+              compact
+                ? "h-9 pl-9 pr-8 text-[13px] rounded-lg"
+                : "h-[50px] pl-11 pr-10 text-[15px] rounded-xl focus:ring-[3px] focus:ring-[var(--c-accent-subtle)]"
+            }`}
           />
           {query && (
             <button
               type="button"
               onClick={() => { setQuery(""); setResults([]); setIsOpen(false); }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-[var(--c-surface2)] text-[var(--c-faint)]"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-md hover:bg-[var(--c-surface2)] text-[var(--c-faint)]"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
       </form>
 
-      {/* Búsquedas populares */}
-      <div className="flex justify-center gap-1.5 mt-3 flex-wrap">
-        {POPULAR.map((term) => (
-          <button
-            key={term}
-            onClick={() => { setQuery(term); doSearch(term); }}
-            className="text-[12px] font-medium px-3 py-1 rounded-md border border-[var(--c-border)] text-[var(--c-dim)] hover:border-[var(--c-accent-border)] hover:text-[var(--c-accent-text)] hover:bg-[var(--c-accent-subtle)] transition-all"
-          >
-            {term}
-          </button>
-        ))}
-      </div>
+      {/* Popular searches — only in full mode */}
+      {!compact && (
+        <div className="flex justify-center gap-1.5 mt-3 flex-wrap">
+          {POPULAR.map((term) => (
+            <button
+              key={term}
+              onClick={() => { setQuery(term); doSearch(term); }}
+              className="text-[12px] font-medium px-3 py-1 rounded-md border border-[var(--c-border)] text-[var(--c-dim)] hover:border-[var(--c-accent-border)] hover:text-[var(--c-accent-text)] hover:bg-[var(--c-accent-subtle)] transition-all"
+            >
+              {term}
+            </button>
+          ))}
+        </div>
+      )}
 
-      {/* Dropdown de resultados */}
+      {/* Results dropdown */}
       {isOpen && results.length > 0 && (
-        <div className="absolute top-[56px] left-0 right-0 bg-[var(--c-surface)] border border-[var(--c-border2)] rounded-xl shadow-xl overflow-hidden z-50">
+        <div className={`absolute left-0 right-0 bg-[var(--c-surface)] border border-[var(--c-border2)] rounded-xl shadow-xl overflow-hidden z-50 ${compact ? "top-[42px]" : "top-[56px]"}`}>
           {results.slice(0, 6).map((r) => (
             <button
               key={r.id}
@@ -127,7 +135,7 @@ export function SearchBar() {
                 <div className="text-[12px] text-[var(--c-dim)] truncate">{r.tagline_es}</div>
               </div>
               {r.score && (
-                <span className="ml-auto text-[12px] font-bold text-[var(--c-heading)]">{r.score}</span>
+                <span className="ml-auto text-[12px] font-bold text-[var(--c-heading)]">{Number(r.score).toFixed(1)}</span>
               )}
             </button>
           ))}
