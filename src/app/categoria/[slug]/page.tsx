@@ -58,11 +58,11 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     if (searchParams.oss) base.oss = searchParams.oss;
     if (searchParams.page) base.page = searchParams.page;
 
-    const merged = { ...base, ...overrides };
-    // Remove undefined / empty
-    Object.keys(merged).forEach((k) => {
-      if (!merged[k]) delete merged[k];
-    });
+    const merged: Record<string, string> = { ...base };
+    for (const [k, v] of Object.entries(overrides)) {
+      if (v) merged[k] = v;
+      else delete merged[k];
+    }
     const qs = new URLSearchParams(merged).toString();
     return `/categoria/${params.slug}${qs ? `?${qs}` : ""}`;
   }
