@@ -1,17 +1,13 @@
 /**
- * Script para ejecutar el pipeline y guardar resultados en Supabase.
+ * Script para ejecutar el pipeline y guardar resultados en Neon.
  *
  * Uso:
  *   npx tsx scripts/run-pipeline.ts
- *   npx tsx scripts/run-pipeline.ts --source hf
  *   npx tsx scripts/run-pipeline.ts --dry-run
  */
-import { createClient } from "@supabase/supabase-js";
+import { neon } from "@neondatabase/serverless";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // admin access
-);
+const sql = neon(process.env.DATABASE_URL!);
 
 interface PipelineFicha {
   nombre: string;
@@ -31,79 +27,11 @@ interface PipelineFicha {
   source_url?: string;
   source?: string;
   es_open_source?: boolean;
-  // HF fields
   que_hace?: string;
   como_usarlo?: string;
   popularidad?: string;
 }
 
-async function importFicha(ficha: PipelineFicha): Promise<{ success: boolean; error?: string }> {
-  // Buscar categoría por slug
-  let categoryId: string | null = null;
-  if (ficha.categoria) {
-    const { data: cat } = await supabase
-      .from("categories")
-      .select("id")
-      .eq("slug", ficha.categoria)
-      .single();
-    categoryId = cat?.id ?? null;
-  }
-
-  // Verificar si ya existe (por slug)
-  const { data: existing } = await supabase
-    .from("tools")
-    .select("id")
-    .eq("slug", ficha.slug)
-    .single();
-
-  const toolData = {
-    slug: ficha.slug,
-    name: ficha.nombre,
-    tagline_es: ficha.tagline_es,
-    description_es: ficha.descripcion_es,
-    url: ficha.source_url || null,
-    category_id: categoryId,
-    tags: ficha.tags || [],
-    source: ficha.source || "pipeline",
-    pricing_summary: ficha.pricing_resumen || null,
-    has_free_plan: ficha.tiene_plan_gratis ?? false,
-    supports_spanish: ficha.soporta_espanol ?? false,
-    score: ficha.puntuacion || null,
-    skill_level: ficha.nivel_tecnico || null,
-    is_open_source: ficha.es_open_source ?? false,
-    use_case_es: ficha.caso_de_uso || null,
-    verdict_es: ficha.veredicto || null,
-    how_to_use: ficha.como_usarlo || null,
-    pros: ficha.caracteristicas || [],
-    status: "review" as const, // va a cola de revisión, no se publica directamente
-    updated_at: new Date().toISOString(),
-  };
-
-  if (existing) {
-    // Actualizar
-    const { error } = await supabase
-      .from("tools")
-      .update(toolData)
-      .eq("id", existing.id);
-
-    if (error) return { success: false, error: error.message };
-    return { success: true };
-  } else {
-    // Insertar
-    const { error } = await supabase
-      .from("tools")
-      .insert({
-        ...toolData,
-        logo_color: generateColor(ficha.nombre),
-        created_at: new Date().toISOString(),
-      });
-
-    if (error) return { success: false, error: error.message };
-    return { success: true };
-  }
-}
-
-// Generar color consistente por nombre
 function generateColor(name: string): string {
   const colors = [
     "#635bff", "#1a8cd8", "#e11d48", "#0f172a", "#171717",
@@ -114,20 +42,59 @@ function generateColor(name: string): string {
   return colors[Math.abs(hash) % colors.length];
 }
 
-// ── Main ──
+async function importFicha(ficha: PipelineFicha): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Buscar categoría
+    let categoryId: string | null = null;
+    if (ficha.categoria) {
+      const cats = await sql`SELECT id FROM categories WHERE slug = ${ficha.categoria} LIMIT 1`;
+      categoryId = cats[0]?.id ?? null;
+    }
+
+    const now = new Date().toISOString();
+    const color = generateColor(ficha.nombre);
+
+    await sql`
+      INSERT INTO tools (
+        slug, name, tagline_es, description_es, url, category_id,
+        tags, source, pricing_summary, has_free_plan, supports_spanish,
+        score, skill_level, is_open_source, use_case_es, verdict_es,
+        how_to_use, pros, logo_color, status, created_at, updated_at
+      ) VALUES (
+        ${ficha.slug}, ${ficha.nombre}, ${ficha.tagline_es}, ${ficha.descripcion_es},
+        ${ficha.source_url ?? null}, ${categoryId},
+        ${ficha.tags ?? []}, ${ficha.source ?? "pipeline"},
+        ${ficha.pricing_resumen ?? null}, ${ficha.tiene_plan_gratis ?? false},
+        ${ficha.soporta_espanol ?? false}, ${ficha.puntuacion ?? null},
+        ${ficha.nivel_tecnico ?? null}, ${ficha.es_open_source ?? false},
+        ${ficha.caso_de_uso ?? null}, ${ficha.veredicto ?? null},
+        ${ficha.como_usarlo ?? null}, ${ficha.caracteristicas ?? []},
+        ${color}, 'review', ${now}, ${now}
+      )
+      ON CONFLICT (slug) DO UPDATE SET
+        name = EXCLUDED.name,
+        tagline_es = EXCLUDED.tagline_es,
+        description_es = EXCLUDED.description_es,
+        updated_at = EXCLUDED.updated_at
+    `;
+
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const dryRun = args.includes("--dry-run");
 
-  // Leer fichas del output del pipeline Python
   const fs = await import("fs");
   const path = await import("path");
 
-  // Buscar el JSON más reciente en el output del pipeline
-  const pipelineOutput = path.resolve(__dirname, "../../hayunaiapara-pipeline/output");
+  const pipelineOutput = path.resolve(__dirname, "../../pipeline_output");
   if (!fs.existsSync(pipelineOutput)) {
     console.error("No se encontró el directorio de output del pipeline.");
-    console.error("Ejecuta primero: cd hayunaiapara-pipeline && python pipeline.py");
+    console.error("Ejecuta primero: python pipeline.py");
     process.exit(1);
   }
 
@@ -146,7 +113,6 @@ async function main() {
 
   const raw = JSON.parse(fs.readFileSync(latestFile, "utf-8"));
   const fichas: PipelineFicha[] = raw.fichas ?? [];
-
   console.log(`${fichas.length} fichas encontradas.`);
 
   if (dryRun) {
@@ -155,7 +121,6 @@ async function main() {
     return;
   }
 
-  // Importar
   let ok = 0, errors = 0;
   for (const ficha of fichas) {
     const result = await importFicha(ficha);

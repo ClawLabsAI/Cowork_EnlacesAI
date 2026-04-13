@@ -5,7 +5,7 @@ Directorio de herramientas de IA curado en español. Combina lo mejor de theresa
 ## Stack
 
 - **Next.js 14** (App Router, ISR, Server Components)
-- **Supabase** (PostgreSQL, RLS, full-text search en español)
+- **Neon** (PostgreSQL serverless, full-text search en español)
 - **Tailwind CSS** (dark/light themes via CSS custom properties)
 - **TypeScript**
 
@@ -17,10 +17,10 @@ npm install
 
 # 2. Configurar variables de entorno
 cp .env.example .env.local
-# Editar .env.local con tus keys de Supabase
+# Editar .env.local con tu DATABASE_URL de Neon
 
 # 3. Crear la base de datos
-# Ejecutar supabase/schema.sql en el SQL Editor de Supabase
+# Ejecutar supabase/schema.sql en el SQL Editor de Neon
 
 # 4. Seed con datos de ejemplo
 npx tsx scripts/seed.ts
@@ -45,12 +45,12 @@ src/
 │   └── tools/ToolCard.tsx        # Tarjeta de herramienta
 ├── lib/
 │   ├── types.ts                  # Interfaces TypeScript
-│   ├── supabase.ts               # Cliente Supabase
+│   ├── db.ts                     # Cliente Neon
 │   └── data.ts                   # Capa de acceso a datos
 └── styles/globals.css            # Tokens dark/light
 scripts/
 ├── seed.ts                       # Datos de ejemplo
-└── run-pipeline.ts               # Conector pipeline → Supabase
+└── run-pipeline.ts               # Conector pipeline → Neon
 supabase/
 └── schema.sql                    # Esquema completo
 ```

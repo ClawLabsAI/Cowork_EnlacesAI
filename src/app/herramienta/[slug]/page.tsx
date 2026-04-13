@@ -56,7 +56,7 @@ export default async function ToolPage({ params }: Props) {
             {tool.score && (
               <span className="flex items-center gap-1 text-[14px] font-bold text-[var(--c-heading)]">
                 <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                {tool.score.toFixed(1)} / 10
+                {Number(tool.score).toFixed(1)} / 10
               </span>
             )}
             {tool.skill_level && (

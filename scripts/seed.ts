@@ -3,38 +3,10 @@
  *
  * Uso:
  *   npx tsx scripts/seed.ts
- *   npx tsx scripts/seed.ts --clean   (borra y re-inserta)
  */
-import { createClient } from "@supabase/supabase-js";
+import { neon } from "@neondatabase/serverless";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-// ── Categorías (deben coincidir con schema.sql) ──
-const CATEGORIES = [
-  { slug: "escritura", name_es: "Escritura", icon: "pen-tool", sort_order: 1, description_es: "Herramientas para redacción, corrección y generación de texto con IA." },
-  { slug: "imagen", name_es: "Imagen", icon: "image", sort_order: 2, description_es: "Generación, edición y mejora de imágenes con inteligencia artificial." },
-  { slug: "video", name_es: "Video", icon: "video", sort_order: 3, description_es: "Creación, edición y generación de video con IA." },
-  { slug: "audio", name_es: "Audio y Voz", icon: "mic", sort_order: 4, description_es: "Síntesis de voz, transcripción, música y procesamiento de audio." },
-  { slug: "codigo", name_es: "Código", icon: "code-2", sort_order: 5, description_es: "Asistentes de programación, generación de código y depuración." },
-  { slug: "productividad", name_es: "Productividad", icon: "zap", sort_order: 6, description_es: "Herramientas para automatizar tareas, gestionar proyectos y ser más eficiente." },
-  { slug: "investigacion", name_es: "Investigación", icon: "search", sort_order: 7, description_es: "Búsqueda avanzada, análisis de datos y asistentes de investigación." },
-  { slug: "chatbots", name_es: "Chatbots", icon: "message-circle", sort_order: 8, description_es: "Chatbots, asistentes virtuales y agentes conversacionales." },
-  { slug: "marketing", name_es: "Marketing", icon: "megaphone", sort_order: 9, description_es: "Herramientas de marketing digital, SEO, copywriting y redes sociales." },
-  { slug: "diseno", name_es: "Diseño", icon: "palette", sort_order: 10, description_es: "Diseño gráfico, UI/UX y herramientas creativas con IA." },
-  { slug: "educacion", name_es: "Educación", icon: "graduation-cap", sort_order: 11, description_es: "Plataformas educativas, tutores IA y herramientas de aprendizaje." },
-  { slug: "datos", name_es: "Datos y Analytics", icon: "bar-chart-3", sort_order: 12, description_es: "Análisis de datos, visualización, BI y machine learning." },
-  { slug: "traduccion", name_es: "Traducción", icon: "languages", sort_order: 13, description_es: "Traducción automática, localización y herramientas multilingüe." },
-  { slug: "presentaciones", name_es: "Presentaciones", icon: "presentation", sort_order: 14, description_es: "Generación automática de presentaciones y slides." },
-  { slug: "email", name_es: "Email", icon: "mail", sort_order: 15, description_es: "Redacción de emails, automatización y gestión de correo." },
-  { slug: "legal", name_es: "Legal", icon: "scale", sort_order: 16, description_es: "Herramientas legales, contratos, compliance y documentación." },
-  { slug: "finanzas", name_es: "Finanzas", icon: "wallet", sort_order: 17, description_es: "Análisis financiero, contabilidad y herramientas de inversión." },
-  { slug: "salud", name_es: "Salud", icon: "heart-pulse", sort_order: 18, description_es: "Herramientas de salud, diagnóstico y bienestar con IA." },
-  { slug: "modelos", name_es: "Modelos y APIs", icon: "cpu", sort_order: 19, description_es: "Modelos de lenguaje, APIs y plataformas de ML." },
-  { slug: "otros", name_es: "Otros", icon: "grid-3x3", sort_order: 20, description_es: "Herramientas que no encajan en otra categoría." },
-];
+const sql = neon(process.env.DATABASE_URL!);
 
 // ── Herramientas de ejemplo ──
 const TOOLS = [
@@ -47,7 +19,7 @@ const TOOLS = [
     categoria: "chatbots",
     tags: ["chatbot", "gpt", "openai", "multimodal"],
     score: 9.2,
-    skill_level: "Principiante",
+    skill_level: "principiante",
     has_free_plan: true,
     supports_spanish: true,
     is_open_source: false,
@@ -67,7 +39,7 @@ const TOOLS = [
     categoria: "chatbots",
     tags: ["chatbot", "anthropic", "contexto largo", "razonamiento"],
     score: 9.0,
-    skill_level: "Principiante",
+    skill_level: "principiante",
     has_free_plan: true,
     supports_spanish: true,
     is_open_source: false,
@@ -87,7 +59,7 @@ const TOOLS = [
     categoria: "imagen",
     tags: ["imagen", "arte", "generación", "creative"],
     score: 9.1,
-    skill_level: "Intermedio",
+    skill_level: "intermedio",
     has_free_plan: false,
     supports_spanish: false,
     is_open_source: false,
@@ -107,7 +79,7 @@ const TOOLS = [
     categoria: "investigacion",
     tags: ["búsqueda", "investigación", "fuentes", "rag"],
     score: 8.7,
-    skill_level: "Principiante",
+    skill_level: "principiante",
     has_free_plan: true,
     supports_spanish: true,
     is_open_source: false,
@@ -127,7 +99,7 @@ const TOOLS = [
     categoria: "codigo",
     tags: ["programación", "editor", "autocompletado", "refactoring"],
     score: 9.0,
-    skill_level: "Avanzado",
+    skill_level: "avanzado",
     has_free_plan: true,
     supports_spanish: false,
     is_open_source: false,
@@ -144,10 +116,10 @@ const TOOLS = [
     tagline_es: "Crea presentaciones profesionales con IA en minutos",
     description_es: "Gamma genera presentaciones, documentos y páginas web a partir de texto o un simple prompt. No necesitas saber diseñar: la IA estructura el contenido, elige layouts y aplica estilos automáticamente. Exporta a PowerPoint y PDF.",
     url: "https://gamma.app",
-    categoria: "presentaciones",
+    categoria: "productividad",
     tags: ["presentaciones", "slides", "documentos", "no-code"],
     score: 8.3,
-    skill_level: "Principiante",
+    skill_level: "principiante",
     has_free_plan: true,
     supports_spanish: true,
     is_open_source: false,
@@ -167,7 +139,7 @@ const TOOLS = [
     categoria: "audio",
     tags: ["voz", "text-to-speech", "clonación", "audio"],
     score: 8.8,
-    skill_level: "Principiante",
+    skill_level: "principiante",
     has_free_plan: true,
     supports_spanish: true,
     is_open_source: false,
@@ -176,6 +148,7 @@ const TOOLS = [
     verdict_es: "La mejor síntesis de voz que existe. El español suena muy natural y la clonación de voz es impresionante.",
     pros: ["Calidad de voz excepcional", "Buen español", "Clonación de voz", "API disponible"],
     cons: ["Plan gratis muy limitado", "La clonación requiere plan de pago"],
+    is_featured: false,
   },
   {
     slug: "notion-ai",
@@ -186,7 +159,7 @@ const TOOLS = [
     categoria: "productividad",
     tags: ["productividad", "notas", "documentos", "workspace"],
     score: 8.1,
-    skill_level: "Principiante",
+    skill_level: "principiante",
     has_free_plan: false,
     supports_spanish: true,
     is_open_source: false,
@@ -195,6 +168,7 @@ const TOOLS = [
     verdict_es: "Si ya usas Notion, es un complemento natural. Si no, el costo combinado puede ser alto comparado con alternativas dedicadas.",
     pros: ["Integración perfecta con Notion", "Acceso a tu base de conocimiento", "Soporta español"],
     cons: ["Requiere suscripción a Notion", "No funciona fuera de Notion", "Precio se suma al base"],
+    is_featured: false,
   },
   {
     slug: "runway-ml",
@@ -205,7 +179,7 @@ const TOOLS = [
     categoria: "video",
     tags: ["video", "generación", "edición", "vfx"],
     score: 8.5,
-    skill_level: "Intermedio",
+    skill_level: "intermedio",
     has_free_plan: true,
     supports_spanish: false,
     is_open_source: false,
@@ -214,6 +188,7 @@ const TOOLS = [
     verdict_es: "El líder en generación de video con IA. Los resultados de Gen-3 son impresionantes, pero el consumo de créditos es alto.",
     pros: ["Generación de video estado del arte", "Herramientas de edición potentes", "Plan gratis para probar"],
     cons: ["Créditos se gastan rápido", "Interfaz solo en inglés", "Requiere GPU para algunos features"],
+    is_featured: false,
   },
   {
     slug: "deepl",
@@ -224,7 +199,7 @@ const TOOLS = [
     categoria: "traduccion",
     tags: ["traducción", "idiomas", "localización", "nlp"],
     score: 9.0,
-    skill_level: "Principiante",
+    skill_level: "principiante",
     has_free_plan: true,
     supports_spanish: true,
     is_open_source: false,
@@ -233,67 +208,9 @@ const TOOLS = [
     verdict_es: "Simplemente el mejor traductor automático. Para español es excelente y la versión gratuita es suficiente para uso personal.",
     pros: ["Calidad de traducción superior", "Excelente español", "Extensión de navegador", "API robusta"],
     cons: ["Límite de caracteres en versión gratis", "Menos idiomas que Google"],
+    is_featured: false,
   },
 ];
-
-// ── Main ──
-
-async function main() {
-  const args = process.argv.slice(2);
-  const clean = args.includes("--clean");
-
-  console.log("Seed: Iniciando...\n");
-
-  // 1. Categorías
-  if (clean) {
-    console.log("  Limpiando tablas...");
-    await supabase.from("comparison_items").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await supabase.from("comparisons").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await supabase.from("tools").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await supabase.from("categories").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-  }
-
-  console.log("  Insertando categorías...");
-  for (const cat of CATEGORIES) {
-    const { error } = await supabase
-      .from("categories")
-      .upsert(cat, { onConflict: "slug" });
-    if (error) console.error(`    ✗ ${cat.name_es}: ${error.message}`);
-    else console.log(`    ✓ ${cat.name_es}`);
-  }
-
-  // 2. Herramientas
-  console.log("\n  Insertando herramientas...");
-  for (const tool of TOOLS) {
-    // Buscar category_id
-    const { data: cat } = await supabase
-      .from("categories")
-      .select("id")
-      .eq("slug", tool.categoria)
-      .single();
-
-    const { categoria, ...rest } = tool;
-    const toolData = {
-      ...rest,
-      category_id: cat?.id ?? null,
-      source: "seed",
-      status: "published",
-      logo_color: generateColor(tool.name),
-      published_at: new Date().toISOString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    const { error } = await supabase
-      .from("tools")
-      .upsert(toolData, { onConflict: "slug" });
-
-    if (error) console.error(`    ✗ ${tool.name}: ${error.message}`);
-    else console.log(`    ✓ ${tool.name}`);
-  }
-
-  console.log("\nSeed completado.");
-}
 
 function generateColor(name: string): string {
   const colors = [
@@ -303,6 +220,53 @@ function generateColor(name: string): string {
   let hash = 0;
   for (const ch of name) hash = ((hash << 5) - hash + ch.charCodeAt(0)) | 0;
   return colors[Math.abs(hash) % colors.length];
+}
+
+async function main() {
+  console.log("Seed: Iniciando...\n");
+
+  // Verificar categorías
+  const cats = await sql`SELECT slug, id FROM categories`;
+  const catMap = new Map(cats.map((c: any) => [c.slug, c.id]));
+  console.log(`  ${catMap.size} categorías encontradas en la DB.\n`);
+
+  // Insertar herramientas
+  console.log("  Insertando herramientas...");
+  for (const tool of TOOLS) {
+    const categoryId = catMap.get(tool.categoria) ?? null;
+    const color = generateColor(tool.name);
+    const now = new Date().toISOString();
+
+    try {
+      await sql`
+        INSERT INTO tools (
+          slug, name, tagline_es, description_es, url, category_id,
+          tags, score, skill_level, has_free_plan, supports_spanish,
+          is_open_source, pricing_summary, use_case_es, verdict_es,
+          pros, cons, is_featured, logo_color, source, status,
+          published_at, featured_at, created_at, updated_at
+        ) VALUES (
+          ${tool.slug}, ${tool.name}, ${tool.tagline_es}, ${tool.description_es},
+          ${tool.url}, ${categoryId}, ${tool.tags}, ${tool.score},
+          ${tool.skill_level}, ${tool.has_free_plan}, ${tool.supports_spanish},
+          ${tool.is_open_source}, ${tool.pricing_summary}, ${tool.use_case_es},
+          ${tool.verdict_es}, ${tool.pros}, ${tool.cons}, ${tool.is_featured},
+          ${color}, 'seed', 'published', ${now},
+          ${tool.is_featured ? now : null}, ${now}, ${now}
+        )
+        ON CONFLICT (slug) DO UPDATE SET
+          name = EXCLUDED.name,
+          tagline_es = EXCLUDED.tagline_es,
+          description_es = EXCLUDED.description_es,
+          updated_at = EXCLUDED.updated_at
+      `;
+      console.log(`    ✓ ${tool.name}`);
+    } catch (err: any) {
+      console.error(`    ✗ ${tool.name}: ${err.message}`);
+    }
+  }
+
+  console.log("\nSeed completado.");
 }
 
 main().catch(console.error);

@@ -80,7 +80,7 @@ export function ToolCard({ tool, featured }: Props) {
         {tool.score && (
           <div className="flex items-center gap-1 text-[13px] font-bold text-[var(--c-heading)]">
             <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-            {tool.score.toFixed(1)}
+            {Number(tool.score).toFixed(1)}
           </div>
         )}
       </div>

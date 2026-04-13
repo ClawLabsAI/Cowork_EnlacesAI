@@ -1,5 +1,5 @@
 -- ============================================================
--- ENLACES.AI — Database Schema (Supabase / PostgreSQL)
+-- ENLACES.AI — Database Schema (PostgreSQL / Neon)
 -- ============================================================
 
 -- Extensiones
@@ -12,11 +12,11 @@ CREATE EXTENSION IF NOT EXISTS "pg_trgm";    -- búsqueda fuzzy
 CREATE TABLE categories (
   id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   slug        TEXT UNIQUE NOT NULL,
-  name_es     TEXT NOT NULL,              -- "Escritura y Texto"
-  name_en     TEXT,                       -- "Writing" (para mapear con TAAFT)
-  icon        TEXT,                       -- nombre del icono (lucide)
-  description TEXT,
-  tool_count  INT DEFAULT 0,             -- counter cache
+  name_es     TEXT NOT NULL,
+  name_en     TEXT,
+  icon        TEXT,
+  description_es TEXT,
+  tool_count  INT DEFAULT 0,
   sort_order  INT DEFAULT 0,
   created_at  TIMESTAMPTZ DEFAULT NOW(),
   updated_at  TIMESTAMPTZ DEFAULT NOW()
@@ -52,45 +52,45 @@ CREATE TABLE tools (
   id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   slug            TEXT UNIQUE NOT NULL,
   name            TEXT NOT NULL,
-  tagline_es      TEXT,                    -- frase corta en español
-  description_es  TEXT,                    -- descripción completa
-  url             TEXT,                    -- web oficial
-  logo_url        TEXT,                    -- URL del logo
-  logo_color      TEXT DEFAULT '#635bff',  -- color de fondo para inicial
+  tagline_es      TEXT,
+  description_es  TEXT,
+  url             TEXT,
+  logo_url        TEXT,
+  logo_color      TEXT DEFAULT '#635bff',
 
   -- Clasificación
   category_id     UUID REFERENCES categories(id),
   tags            TEXT[] DEFAULT '{}',
-  source          TEXT,                    -- 'taaft', 'huggingface', 'manual'
-  source_url      TEXT,                    -- URL en la fuente original
+  source          TEXT,
+  source_url      TEXT,
 
   -- Metadata
-  pricing_summary TEXT,                    -- "Gratis / $10 al mes / Enterprise"
+  pricing_summary TEXT,
   has_free_plan   BOOLEAN DEFAULT FALSE,
   supports_spanish BOOLEAN DEFAULT FALSE,
-  score           DECIMAL(3,1),            -- 0.0 - 10.0
+  score           DECIMAL(3,1),
   skill_level     TEXT CHECK (skill_level IN ('principiante','intermedio','avanzado')),
 
   -- Hugging Face specific
   is_open_source  BOOLEAN DEFAULT FALSE,
-  hf_model_id     TEXT,                    -- ej: "meta-llama/Llama-3.1-8B"
+  hf_model_id     TEXT,
   hf_downloads    BIGINT,
   hf_likes        INT,
-  hf_pipeline_tag TEXT,                    -- "text-generation", etc.
+  hf_pipeline_tag TEXT,
 
   -- Content
-  pros            TEXT[],                  -- puntos a favor
-  cons            TEXT[],                  -- puntos en contra
-  use_case_es     TEXT,                    -- caso de uso ideal
-  verdict_es      TEXT,                    -- veredicto editorial
-  how_to_use      TEXT,                    -- cómo usarlo (para modelos HF)
-  alternatives    TEXT[],                  -- slugs de alternativas
+  pros            TEXT[],
+  cons            TEXT[],
+  use_case_es     TEXT,
+  verdict_es      TEXT,
+  how_to_use      TEXT,
+  alternatives    TEXT[],
 
   -- Localización
   supported_languages TEXT[] DEFAULT '{}',
   accepts_latam_payments BOOLEAN,
   gdpr_compliant  BOOLEAN,
-  made_in_country TEXT,                    -- "CO", "ES", "MX" para sección LATAM
+  made_in_country TEXT,
 
   -- Status
   status          TEXT DEFAULT 'draft' CHECK (status IN ('draft','review','published','archived')),
@@ -109,10 +109,10 @@ CREATE TABLE tools (
 CREATE TABLE comparisons (
   id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   slug          TEXT UNIQUE NOT NULL,
-  title_es      TEXT NOT NULL,            -- "IAs para crear presentaciones"
-  description   TEXT,
+  title_es      TEXT NOT NULL,
+  description_es TEXT,
   category_id   UUID REFERENCES categories(id),
-  criteria      JSONB,                    -- columnas de la tabla comparativa
+  criteria      JSONB,
   status        TEXT DEFAULT 'draft',
   created_at    TIMESTAMPTZ DEFAULT NOW(),
   updated_at    TIMESTAMPTZ DEFAULT NOW()
@@ -122,7 +122,7 @@ CREATE TABLE comparison_items (
   id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   comparison_id UUID REFERENCES comparisons(id) ON DELETE CASCADE,
   tool_id       UUID REFERENCES tools(id),
-  scores        JSONB NOT NULL,           -- {"plan_gratis": true, "calidad": "Excelente", ...}
+  scores        JSONB NOT NULL,
   sort_order    INT DEFAULT 0
 );
 
@@ -133,18 +133,18 @@ CREATE TABLE subscribers (
   id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   email         TEXT UNIQUE NOT NULL,
   name          TEXT,
-  source        TEXT DEFAULT 'website',   -- 'website', 'twitter', 'import'
+  source        TEXT DEFAULT 'website',
   status        TEXT DEFAULT 'active' CHECK (status IN ('active','unsubscribed','bounced')),
   subscribed_at TIMESTAMPTZ DEFAULT NOW(),
   unsubscribed_at TIMESTAMPTZ
 );
 
 -- ============================================================
--- PIPELINE TRACKING (para saber qué ya se procesó)
+-- PIPELINE TRACKING
 -- ============================================================
 CREATE TABLE pipeline_runs (
   id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  source        TEXT NOT NULL,            -- 'huggingface', 'taaft'
+  source        TEXT NOT NULL,
   items_found   INT DEFAULT 0,
   items_new     INT DEFAULT 0,
   items_updated INT DEFAULT 0,
@@ -157,10 +157,10 @@ CREATE TABLE pipeline_runs (
 CREATE TABLE pipeline_items (
   id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   run_id        UUID REFERENCES pipeline_runs(id),
-  external_id   TEXT NOT NULL,            -- ID en la fuente (HF model id, TAAFT url)
+  external_id   TEXT NOT NULL,
   source        TEXT NOT NULL,
   status        TEXT DEFAULT 'pending' CHECK (status IN ('pending','processing','done','error','duplicate')),
-  tool_id       UUID REFERENCES tools(id),  -- si se creó/actualizó una tool
+  tool_id       UUID REFERENCES tools(id),
   raw_data      JSONB,
   error_message TEXT,
   processed_at  TIMESTAMPTZ
@@ -189,11 +189,7 @@ CREATE TRIGGER tools_search_trigger
   FOR EACH ROW EXECUTE FUNCTION tools_search_update();
 
 CREATE INDEX idx_tools_search ON tools USING GIN(search_vector);
-
--- Búsqueda fuzzy por nombre (trigrams)
 CREATE INDEX idx_tools_name_trgm ON tools USING GIN(name gin_trgm_ops);
-
--- Queries frecuentes
 CREATE INDEX idx_tools_status ON tools(status) WHERE status = 'published';
 CREATE INDEX idx_tools_category ON tools(category_id);
 CREATE INDEX idx_tools_featured ON tools(is_featured) WHERE is_featured = TRUE;
@@ -201,20 +197,6 @@ CREATE INDEX idx_tools_source ON tools(source);
 CREATE INDEX idx_tools_score ON tools(score DESC NULLS LAST);
 CREATE INDEX idx_tools_slug ON tools(slug);
 CREATE INDEX idx_pipeline_items_ext ON pipeline_items(external_id, source);
-
--- ============================================================
--- ROW LEVEL SECURITY (Supabase)
--- ============================================================
-ALTER TABLE tools ENABLE ROW LEVEL SECURITY;
-ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE subscribers ENABLE ROW LEVEL SECURITY;
-
--- Lectura pública de tools y categories
-CREATE POLICY "tools_public_read" ON tools FOR SELECT USING (status = 'published');
-CREATE POLICY "categories_public_read" ON categories FOR SELECT USING (TRUE);
-
--- Subscribers: solo insert público (el email)
-CREATE POLICY "subscribers_insert" ON subscribers FOR INSERT WITH CHECK (TRUE);
 
 -- ============================================================
 -- FUNCIONES
@@ -241,7 +223,7 @@ BEGIN
     WHERE t.status = 'published'
       AND (
         t.search_vector @@ websearch_to_tsquery('spanish', query)
-        OR t.name % query  -- fuzzy match via pg_trgm
+        OR t.name % query
       )
     ORDER BY rank DESC, t.score DESC NULLS LAST
     LIMIT lim;
